@@ -18,37 +18,50 @@ func (t Token) String() string {
 }
 
 const (
-	ILLEGAL        TokenType = "ILLEGAL"
-	EOF            TokenType = "EOF"
-	IDENT          TokenType = "IDENT"
-	INT            TokenType = "INT"
-	ASSIGN         TokenType = "ASSIGN"
-	PLUS           TokenType = "PLUS"
-	MINUS          TokenType = "MINUS"
-	MULTIPLY       TokenType = "MULTIPLY"
-	DIVIDE         TokenType = "DIVIDE"
-	MODULO         TokenType = "MODULO"
-	EQUALS         TokenType = "EQUALS"
-	NOT_EQUALS     TokenType = "NOT_EQUALS"
-	GREATER        TokenType = "GREATER"
-	LESS           TokenType = "LESS"
-	GREATER_EQUALS TokenType = "GREATER_EQUALS"
-	LESS_EQUALS    TokenType = "LESS_EQUALS"
-	AND            TokenType = "AND"
-	OR             TokenType = "OR"
-	COMMA          TokenType = "COMMA"
-	SEMICOLON      TokenType = "SEMICOLON"
-	LPAREN         TokenType = "LPAREN"
-	RPAREN         TokenType = "RPAREN"
-	LBRACE         TokenType = "LBRACE"
-	RBRACE         TokenType = "RBRACE"
-	FUNCTION       TokenType = "FUNCTION"
-	LET            TokenType = "LET"
+	ILLEGAL    TokenType = "ILLEGAL"
+	EOF        TokenType = "EOF"
+	IDENT      TokenType = "IDENT"
+	INT        TokenType = "INT"
+	ASSIGN     TokenType = "ASSIGN"
+	PLUS       TokenType = "PLUS"
+	MINUS      TokenType = "MINUS"
+	BANG       TokenType = "BANG"
+	ASTERISK   TokenType = "ASTERISK"
+	SLASH      TokenType = "SLASH"
+	MODULO     TokenType = "MODULO"
+	EQUALS     TokenType = "EQUALS"
+	NOT_EQUALS TokenType = "NOT_EQUALS"
+	GT         TokenType = "GT"
+	LT         TokenType = "LT"
+	GTE        TokenType = "GTE"
+	LTE        TokenType = "LTE"
+	AND        TokenType = "AND"
+	OR         TokenType = "OR"
+	COMMA      TokenType = "COMMA"
+	SEMICOLON  TokenType = "SEMICOLON"
+	LPAREN     TokenType = "LPAREN"
+	RPAREN     TokenType = "RPAREN"
+	LBRACE     TokenType = "LBRACE"
+	RBRACE     TokenType = "RBRACE"
+	FUNCTION   TokenType = "FUNCTION"
+	LET        TokenType = "LET"
+	TRUE       TokenType = "TRUE"
+	FALSE      TokenType = "FALSE"
+	IF         TokenType = "IF"
+	ELSE       TokenType = "ELSE"
+	WHILE      TokenType = "WHILE"
+	RETURN     TokenType = "RETURN"
 )
 
 var keywords = map[string]TokenType{
-	"fn":  FUNCTION,
-	"let": LET,
+	"fn":     FUNCTION,
+	"let":    LET,
+	"true":   TRUE,
+	"false":  FALSE,
+	"if":     IF,
+	"else":   ELSE,
+	"while":  WHILE,
+	"return": RETURN,
 }
 
 func LookupIdent(ident string) TokenType {
