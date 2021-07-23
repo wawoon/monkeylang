@@ -188,6 +188,61 @@ func TestParsingPrefixExpressions(t *testing.T) {
 	}
 }
 
+func TestParsingInfixExpressions(t *testing.T) {
+	infixTest := []struct {
+		input      string
+		leftValue  int64
+		operator   string
+		rightValue int64
+	}{
+		{`5 + 5;`, 5, "+", 5},
+		{`5 - 5;`, 5, "-", 5},
+		{`5 * 5;`, 5, "*", 5},
+		{`5 / 5;`, 5, "/", 5},
+		{`5 > 5;`, 5, ">", 5},
+		{`5 < 5;`, 5, "<", 5},
+		{`5 == 5;`, 5, "==", 5},
+		{`5 != 5;`, 5, "!=", 5},
+	}
+
+	for _, tt := range infixTest {
+		l := lexer.New(tt.input)
+		p := New(l)
+
+		program := p.ParseProgram()
+		if program == nil {
+			t.Fatalf("ParseProgram: returned nil")
+		}
+
+		checkParserError(t, p)
+		if len(program.Statements) != 1 {
+			t.Fatalf("ParseProgram: expected 1 statements, got %d", len(program.Statements))
+		}
+
+		stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+		if !ok {
+			t.Fatalf("ParseProgram: expected a ExpressionStatement, got %T", program.Statements[0])
+		}
+
+		expr, ok := stmt.Expression.(*ast.InfixExpression)
+		if !ok {
+			t.Fatalf("ParseProgram: expected a InfixExpression, got %T", stmt.Expression)
+		}
+
+		if expr.Operator != tt.operator {
+			t.Fatalf("ParseProgram: expected a InfixExpression with operator %s, got %s", tt.operator, expr.Operator)
+		}
+
+		if !testIntegerLiteral(t, expr.Left, tt.leftValue) {
+			return
+		}
+
+		if !testIntegerLiteral(t, expr.Right, tt.rightValue) {
+			return
+		}
+	}
+}
+
 func testLetStatement(t *testing.T, s ast.Statement, name string) bool {
 	if s.TokenLiteral() != "let" {
 		t.Fatalf("testLetStatement: statement token should be let, got %q", s.TokenLiteral())

@@ -130,3 +130,18 @@ func (pe *PrefixExpression) expressionNode() {}
 func (pe *PrefixExpression) String() string {
 	return "(" + pe.Token.Literal + pe.Right.String() + ")"
 }
+
+type InfixExpression struct {
+	Token    token.Token
+	Operator string
+	Left     Expression
+	Right    Expression
+}
+
+func (ie *InfixExpression) TokenLiteral() string {
+	return ie.Token.Literal
+}
+func (ie *InfixExpression) expressionNode() {}
+func (ie *InfixExpression) String() string {
+	return "(" + ie.Left.String() + ie.Token.Literal + ie.Right.String() + ")"
+}
