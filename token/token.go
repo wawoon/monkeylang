@@ -35,6 +35,8 @@ const (
 	LT         TokenType = "LT"
 	GTE        TokenType = "GTE"
 	LTE        TokenType = "LTE"
+	EQ         TokenType = "=="
+	NEQ        TokenType = "!="
 	AND        TokenType = "AND"
 	OR         TokenType = "OR"
 	COMMA      TokenType = "COMMA"
