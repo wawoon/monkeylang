@@ -2,8 +2,9 @@ package lexer
 
 import (
 	"fmt"
-	"monkey/token"
 	"testing"
+
+	"github.com/wawoon/monkeylang/token"
 )
 
 func TestNextToken(t *testing.T) {
