@@ -2,6 +2,7 @@ package parser
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/wawoon/monkeylang/ast"
 	"github.com/wawoon/monkeylang/lexer"
@@ -44,6 +45,7 @@ func New(l *lexer.Lexer) *Parser {
 	p.infixParseFn = map[token.TokenType]infixParseFn{}
 
 	p.registerPrefix(token.IDENT, p.parseIdentifier)
+	p.registerPrefix(token.INT, p.parseIntegerLiteral)
 
 	p.nextToken()
 	p.nextToken()
@@ -140,6 +142,16 @@ func (p *Parser) parseExpression(precedence int) ast.Expression {
 
 func (p *Parser) parseIdentifier() ast.Expression {
 	return &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
+}
+
+func (p *Parser) parseIntegerLiteral() ast.Expression {
+	val, err := strconv.ParseInt(p.curToken.Literal, 10, 64)
+	if err != nil {
+		msg := fmt.Sprintf("Expected next token to be an integer, but got %s", p.curToken.Literal)
+		p.errors = append(p.errors, msg)
+		return nil
+	}
+	return &ast.IntegerLiteral{Token: p.curToken, Value: val}
 }
 
 func (p *Parser) curTokenIs(t token.TokenType) bool {

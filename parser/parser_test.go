@@ -88,7 +88,7 @@ func TestIdentifierExpression(t *testing.T) {
 	checkParserError(t, p)
 
 	if len(program.Statements) != 1 {
-		t.Fatalf("ParseProgram: expected 3 statements, got %d", len(program.Statements))
+		t.Fatalf("ParseProgram: expected 1 statements, got %d", len(program.Statements))
 	}
 
 	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
@@ -107,6 +107,40 @@ func TestIdentifierExpression(t *testing.T) {
 
 	if ident.TokenLiteral() != "foobar" {
 		t.Fatalf("ParseProgram: expected an Identifier foobar, got %s", ident.TokenLiteral())
+	}
+}
+
+func TestIntegerExpression(t *testing.T) {
+	input := `5;`
+	l := lexer.New(input)
+	p := New(l)
+
+	program := p.ParseProgram()
+	if program == nil {
+		t.Fatalf("ParseProgram: returned nil")
+	}
+	checkParserError(t, p)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("ParseProgram: expected 1 statements, got %d", len(program.Statements))
+	}
+
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("ParseProgram: expected a ExpressionStatement, got %T", program.Statements[0])
+	}
+
+	il, ok := stmt.Expression.(*ast.IntegerLiteral)
+	if !ok {
+		t.Fatalf("ParseProgram: expected an IntegerLiteral, got %T", stmt.Expression)
+	}
+
+	if il.Value != 5 {
+		t.Fatalf("ParseProgram: expected an IntegerLiteral 5, got %d", il.Value)
+	}
+
+	if il.TokenLiteral() != "5" {
+		t.Fatalf("ParseProgram: expected an Identifier foobar, got %s", il.TokenLiteral())
 	}
 }
 
