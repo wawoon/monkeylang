@@ -144,6 +144,50 @@ func TestIntegerExpression(t *testing.T) {
 	}
 }
 
+func TestParsingPrefixExpressions(t *testing.T) {
+	prefixTests := []struct {
+		input        string
+		operator     string
+		integerValue int64
+	}{
+		{`!5;`, "!", 5},
+		{`-15;`, "-", 15},
+	}
+
+	for _, tt := range prefixTests {
+		l := lexer.New(tt.input)
+		p := New(l)
+
+		program := p.ParseProgram()
+		if program == nil {
+			t.Fatalf("ParseProgram: returned nil")
+		}
+
+		checkParserError(t, p)
+		if len(program.Statements) != 1 {
+			t.Fatalf("ParseProgram: expected 1 statements, got %d", len(program.Statements))
+		}
+
+		stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+		if !ok {
+			t.Fatalf("ParseProgram: expected a ExpressionStatement, got %T", program.Statements[0])
+		}
+
+		expr, ok := stmt.Expression.(*ast.PrefixExpression)
+		if !ok {
+			t.Fatalf("ParseProgram: expected a PrefixExpression, got %T", stmt.Expression)
+		}
+
+		if expr.Operator != tt.operator {
+			t.Fatalf("ParseProgram: expected a PrefixExpression with operator %s, got %s", tt.operator, expr.Operator)
+		}
+
+		if !testIntegerLiteral(t, expr.Right, tt.integerValue) {
+			return
+		}
+	}
+}
+
 func testLetStatement(t *testing.T, s ast.Statement, name string) bool {
 	if s.TokenLiteral() != "let" {
 		t.Fatalf("testLetStatement: statement token should be let, got %q", s.TokenLiteral())
@@ -163,6 +207,26 @@ func testLetStatement(t *testing.T, s ast.Statement, name string) bool {
 
 	if letStmt.Name.TokenLiteral() != name {
 		t.Fatalf("testLetStatement: let statement name token should be %q, got %q", name, letStmt.Name.TokenLiteral())
+		return false
+	}
+
+	return true
+}
+
+func testIntegerLiteral(t *testing.T, il ast.Expression, value int64) bool {
+	if il == nil {
+		t.Fatalf("testIntegerLiteral: nil integer literal")
+		return false
+	}
+
+	integer, ok := il.(*ast.IntegerLiteral)
+	if !ok {
+		t.Fatalf("testIntegerLiteral: integer literal should be of type IntegerLiteral, got %T", il)
+		return false
+	}
+
+	if integer.Value != value {
+		t.Fatalf("testIntegerLiteral: integer literal value should be %d, got %d", value, integer.Value)
 		return false
 	}
 
