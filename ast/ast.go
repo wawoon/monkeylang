@@ -36,7 +36,7 @@ func (p *Program) TokenLiteral() string {
 func (p *Program) String() string {
 	var out bytes.Buffer
 	for _, s := range p.Statements {
-		out.WriteString(s.String() + "\n")
+		out.WriteString(s.String())
 	}
 	return out.String()
 }
@@ -156,5 +156,5 @@ func (ie *InfixExpression) TokenLiteral() string {
 }
 func (ie *InfixExpression) expressionNode() {}
 func (ie *InfixExpression) String() string {
-	return "(" + ie.Left.String() + ie.Token.Literal + ie.Right.String() + ")"
+	return "(" + ie.Left.String() + " " + ie.Token.Literal + " " + ie.Right.String() + ")"
 }

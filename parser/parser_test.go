@@ -194,9 +194,9 @@ func TestParsingPrefixExpressions(t *testing.T) {
 func TestParsingInfixExpressions(t *testing.T) {
 	infixTest := []struct {
 		input      string
-		leftValue  int64
+		leftValue  interface{}
 		operator   string
-		rightValue int64
+		rightValue interface{}
 	}{
 		{`5 + 5;`, 5, "+", 5},
 		{`5 - 5;`, 5, "-", 5},
@@ -206,6 +206,9 @@ func TestParsingInfixExpressions(t *testing.T) {
 		{`5 < 5;`, 5, "<", 5},
 		{`5 == 5;`, 5, "==", 5},
 		{`5 != 5;`, 5, "!=", 5},
+		{`true == true;`, true, "==", true},
+		{`true != false;`, true, "!=", false},
+		{`false == false;`, false, "==", false},
 	}
 
 	for _, tt := range infixTest {
@@ -228,6 +231,93 @@ func TestParsingInfixExpressions(t *testing.T) {
 		}
 
 		testInfixExpression(t, stmt.Expression, tt.leftValue, tt.operator, tt.rightValue)
+	}
+}
+
+func TestOperatorPrecedenceParsing(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{
+			input:    `-a * b`,
+			expected: "((-a) * b)",
+		},
+		{
+			input:    `!-a`,
+			expected: "(!(-a))",
+		},
+		{
+			input:    `a + b + c`,
+			expected: "((a + b) + c)",
+		},
+		{
+			input:    `a + b - c`,
+			expected: "((a + b) - c)",
+		},
+		{
+			input:    `a * b * c`,
+			expected: "((a * b) * c)",
+		},
+		{
+			input:    `a * b / c`,
+			expected: "((a * b) / c)",
+		},
+		{
+			input:    `a + b / c`,
+			expected: "(a + (b / c))",
+		},
+		{
+			input:    `a + b * c + d / e - f`,
+			expected: `(((a + (b * c)) + (d / e)) - f)`,
+		},
+		{
+			input:    `3 + 4; -5 * 5`,
+			expected: `(3 + 4)((-5) * 5)`,
+		},
+		{
+			input:    `5 > 4 == 3 < 4`,
+			expected: `((5 > 4) == (3 < 4))`,
+		},
+		{
+			input:    `5 < 4 != 3 > 4`,
+			expected: `((5 < 4) != (3 > 4))`,
+		},
+		{
+			input:    `3 + 4 * 5 == 3 * 1 + 4 * 5`,
+			expected: `((3 + (4 * 5)) == ((3 * 1) + (4 * 5)))`,
+		},
+		{
+			input:    `true`,
+			expected: "true",
+		},
+		{
+			input:    `false`,
+			expected: "false",
+		},
+		{
+			input:    `3 > 5 == false`,
+			expected: `((3 > 5) == false)`,
+		},
+		{
+			input:    `3 < 5 == true`,
+			expected: `((3 < 5) == true)`,
+		},
+	}
+
+	for _, tt := range tests {
+		l := lexer.New(tt.input)
+		p := New(l)
+		program := p.ParseProgram()
+		if program == nil {
+			t.Fatalf("ParseProgram: returned nil")
+		}
+		checkParserError(t, p)
+
+		actual := program.String()
+		if actual != tt.expected {
+			t.Errorf("ParseProgram: expected %q, got %q", tt.expected, actual)
+		}
 	}
 }
 
@@ -338,6 +428,8 @@ func testLiteralExpression(t *testing.T, exp ast.Expression, expected interface{
 		return testIntegerLiteral(t, exp, v)
 	case string:
 		return testIdentifier(t, exp, v)
+	case bool:
+		return testBoolean(t, exp, v)
 	}
 
 	t.Errorf("type of exp not handled. got=%T", exp)
