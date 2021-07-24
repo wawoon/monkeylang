@@ -322,6 +322,18 @@ func TestOperatorPrecedenceParsing(t *testing.T) {
 			input:    `!(true == true)`,
 			expected: "(!(true == true))",
 		},
+		{
+			input:    `a + add(b * c) + d`,
+			expected: "((a + add((b * c))) + d)",
+		},
+		{
+			input:    `add(a, b, 1, 2 * 3, 4 + 5, add(6 + 7 + 8))`,
+			expected: "add(a, b, 1, (2 * 3), (4 + 5), add(((6 + 7) + 8)))",
+		},
+		{
+			input:    `add(a + b + c * d / f + g)`,
+			expected: "add((((a + b) + ((c * d) / f)) + g))",
+		},
 	}
 
 	for _, tt := range tests {
@@ -506,5 +518,37 @@ func TestFunctionParameterParsing(t *testing.T) {
 				return
 			}
 		}
+	}
+}
+
+func TestCallExpressionParsing(t *testing.T) {
+	input := "add(1, 2 * 3, 4 + 5);"
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParserError(t, p)
+	if len(program.Statements) != 1 {
+		t.Fatalf("ParseProgram: expected 1 statements, got %d", len(program.Statements))
+	}
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("ParseProgram: expected a ExpressionStatement, got %T", program.Statements[0])
+	}
+	ce, ok := stmt.Expression.(*ast.CallExpression)
+	if !ok {
+		t.Fatalf("ParseProgram: expected a CallExpression, got %T", stmt.Expression)
+	}
+	if len(ce.Arguments) != 3 {
+		t.Fatalf("ParseProgram: expected 3 arguments, got %d", len(ce.Arguments))
+	}
+
+	if !testIntegerLiteral(t, ce.Arguments[0], 1) {
+		return
+	}
+	if !testInfixExpression(t, ce.Arguments[1], 2, "*", 3) {
+		return
+	}
+	if !testInfixExpression(t, ce.Arguments[2], 4, "+", 5) {
+		return
 	}
 }
