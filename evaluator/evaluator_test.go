@@ -134,6 +134,53 @@ func TestReturnStatements(t *testing.T) {
 	}
 }
 
+func TestErrorHandling(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{
+			input:    "5 + true;",
+			expected: "type mismatch: INTEGER + BOOLEAN",
+		},
+		{
+			input:    "5 + true; 5;",
+			expected: "type mismatch: INTEGER + BOOLEAN",
+		},
+		{
+			input:    "-true;",
+			expected: "unknown operator: -BOOLEAN",
+		},
+		{
+			input:    "true + true;",
+			expected: "unknown operator: BOOLEAN + BOOLEAN",
+		},
+		{
+			input:    "5; true + false; 5;",
+			expected: "unknown operator: BOOLEAN + BOOLEAN"},
+		{
+			input:    "if (10 > 1) { true + false; }",
+			expected: "unknown operator: BOOLEAN + BOOLEAN",
+		},
+		{
+			input: `
+		if (10 > 1) {
+			if (10 > 1) {
+				return true + false;
+			}
+			return 1;
+		}
+		`,
+			expected: "unknown operator: BOOLEAN + BOOLEAN",
+		},
+	}
+
+	for _, test := range tests {
+		evaluated := testEval(test.input)
+		testErrorObject(t, evaluated, test.expected)
+	}
+}
+
 func testEval(input string) object.Object {
 	l := lexer.New(input)
 	p := parser.New(l)
@@ -164,5 +211,15 @@ func testBooleanObject(t *testing.T, evaluated object.Object, expected bool) {
 func testNullObject(t *testing.T, obj object.Object) {
 	if obj.Type() != object.NULL_OBJECT {
 		t.Errorf("Expected a null, but got %s", obj.Type())
+	}
+}
+
+func testErrorObject(t *testing.T, obj object.Object, expected string) {
+	if obj.Type() != object.ERROR_OBJECT {
+		t.Errorf("Expected an error, but got %s", obj.Type())
+	}
+
+	if obj.(*object.Error).Message != expected {
+		t.Errorf("Expected %s, but got %s", expected, obj.(*object.Error).Message)
 	}
 }
