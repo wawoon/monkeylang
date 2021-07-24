@@ -7,12 +7,14 @@ import (
 
 	"github.com/wawoon/monkeylang/evaluator"
 	"github.com/wawoon/monkeylang/lexer"
+	"github.com/wawoon/monkeylang/object"
 	"github.com/wawoon/monkeylang/parser"
 )
 
 const PROMPT = ">> "
 
 func Start(in io.Reader, out io.Writer) {
+	env := object.NewEnvironment()
 	scanner := bufio.NewScanner(in)
 	for {
 		fmt.Printf(PROMPT)
@@ -31,7 +33,7 @@ func Start(in io.Reader, out io.Writer) {
 			continue
 		}
 
-		evaluated := evaluator.Eval(program)
+		evaluated := evaluator.Eval(program, env)
 		if evaluated != nil {
 			io.WriteString(out, evaluated.Inspect())
 			io.WriteString(out, "\n")
