@@ -202,6 +202,58 @@ func TestLetStatements(t *testing.T) {
 	}
 }
 
+func TestFunctionObject(t *testing.T) {
+	input := `fn(x) { x + 2; };`
+	evaluated := testEval(input)
+	fn, ok := evaluated.(*object.Function)
+	if !ok {
+		t.Errorf("evaluated value is not a function: %T", evaluated)
+	}
+	if len(fn.Parameters) != 1 {
+		t.Errorf("function has wrong number of parameters: %d", len(fn.Parameters))
+	}
+	if fn.Parameters[0].Value != "x" {
+		t.Errorf("function has wrong parameter name: %s", fn.Parameters[0].Value)
+	}
+	expectedBody := `(x + 2)`
+	if fn.Body.String() != expectedBody {
+		t.Errorf("function has wrong body: %s", fn.Body.String())
+	}
+}
+
+func TestFunctionApplication(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected int64
+	}{
+		{input: `let identity = fn(x) { x; }; identity(5);`, expected: 5},
+		{input: `let identity = fn(x) { return x; }; identity(5);`, expected: 5},
+		{input: `let double = fn(x) { x * 2; }; double(5);`, expected: 10},
+		{input: `let double = fn(x) { return x * 2; }; double(5);`, expected: 10},
+		{input: `let add = fn(x, y) { x + y; }; add(5, 5);`, expected: 10},
+		{input: `let add = fn(x, y) { return x + y; }; add(5, 5);`, expected: 10},
+		{input: `fn(x, y) { x + y; }(5, 5);`, expected: 10},
+	}
+
+	for _, test := range tests {
+		val := testEval(test.input)
+		testIntegerObject(t, val, test.expected)
+	}
+}
+
+func TestClosure(t *testing.T) {
+	input := `
+	let newAdder = fn(x) {
+		fn(y) {
+			x + y;
+		};
+	};
+	let addTwo = newAdder(2);
+	addTwo(5);
+	`
+	testIntegerObject(t, testEval(input), 7)
+}
+
 func testEval(input string) object.Object {
 	env := object.NewEnvironment()
 	l := lexer.New(input)
