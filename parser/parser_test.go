@@ -370,6 +370,9 @@ func TestIfExpression(t *testing.T) {
 	}
 
 	consequence, ok := exp.Consequence.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("ParseProgram: expected a ExpressionStatement, got %T", exp.Consequence.Statements[0])
+	}
 
 	if !testIdentifier(t, consequence.Expression, "x") {
 		return
@@ -428,5 +431,80 @@ func TestIfElseExpression(t *testing.T) {
 	}
 	if !testIdentifier(t, alternative.Expression, "y") {
 		return
+	}
+}
+
+func TestFunctionLiteralParsing(t *testing.T) {
+	input := `fn(x, y) { x + y; }`
+	l := lexer.New(input)
+
+	p := New(l)
+	program := p.ParseProgram()
+	checkParserError(t, p)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("ParseProgram: expected 1 statements, got %d", len(program.Statements))
+	}
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("ParseProgram: expected a ExpressionStatement, got %T", program.Statements[0])
+	}
+	fl, ok := stmt.Expression.(*ast.FunctionLiteral)
+	if !ok {
+		t.Fatalf("ParseProgram: expected a FunctionLiteral, got %T", stmt.Expression)
+	}
+	if len(fl.Parameters) != 2 {
+		t.Fatalf("ParseProgram: expected 2 parameters, got %d", len(fl.Parameters))
+	}
+	if !testIdentifier(t, fl.Parameters[0], "x") {
+		return
+	}
+	if !testIdentifier(t, fl.Parameters[1], "y") {
+		return
+	}
+	if len(fl.Body.Statements) != 1 {
+		t.Fatalf("ParseProgram: expected 1 statements, got %d", len(fl.Body.Statements))
+	}
+	if !testInfixExpression(t, fl.Body.Statements[0].(*ast.ExpressionStatement).Expression, "x", "+", "y") {
+		return
+	}
+}
+
+func TestFunctionParameterParsing(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected []string
+	}{
+		{
+			input:    "fn() {}",
+			expected: []string{},
+		},
+		{
+			input:    "fn(x) {}",
+			expected: []string{"x"},
+		},
+		{
+			input:    "fn(x, y, z) {}",
+			expected: []string{"x", "y", "z"},
+		},
+	}
+
+	for _, tt := range tests {
+		l := lexer.New(tt.input)
+		p := New(l)
+		program := p.ParseProgram()
+		checkParserError(t, p)
+		fl, ok := program.Statements[0].(*ast.ExpressionStatement).Expression.(*ast.FunctionLiteral)
+		if !ok {
+			t.Fatalf("ParseProgram: expected a FunctionLiteral, got %T", program.Statements[0].(*ast.ExpressionStatement).Expression)
+		}
+		if len(fl.Parameters) != len(tt.expected) {
+			t.Fatalf("ParseProgram: expected %d parameters, got %d", len(tt.expected), len(fl.Parameters))
+		}
+		for i, p := range fl.Parameters {
+			if !testIdentifier(t, p, tt.expected[i]) {
+				return
+			}
+		}
 	}
 }

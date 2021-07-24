@@ -200,3 +200,28 @@ func (bs *BlockStatement) String() string {
 	}
 	return out.String()
 }
+
+type FunctionLiteral struct {
+	Token      token.Token
+	Parameters []*Identifier
+	Body       *BlockStatement
+}
+
+func (fl *FunctionLiteral) TokenLiteral() string {
+	return fl.Token.Literal
+}
+func (fl *FunctionLiteral) expressionNode() {}
+func (fl *FunctionLiteral) String() string {
+	var out bytes.Buffer
+	out.WriteString(fl.TokenLiteral())
+	out.WriteString("(")
+	for i, p := range fl.Parameters {
+		if i != 0 {
+			out.WriteString(", ")
+		}
+		out.WriteString(p.String())
+	}
+	out.WriteString(") ")
+	out.WriteString(fl.Body.String())
+	return out.String()
+}
