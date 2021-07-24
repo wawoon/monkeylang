@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"strconv"
 	"testing"
 
 	"github.com/wawoon/monkeylang/ast"
@@ -89,6 +90,38 @@ func TestIdentifierExpression(t *testing.T) {
 	}
 
 	testIdentifier(t, stmt.Expression, "foobar")
+}
+
+func TestBooleanExpression(t *testing.T) {
+	tests := []struct {
+		input string
+		exp   bool
+	}{
+		{`true;`, true},
+		{`false;`, false},
+	}
+
+	for _, tt := range tests {
+		l := lexer.New(tt.input)
+		p := New(l)
+
+		program := p.ParseProgram()
+		if program == nil {
+			t.Fatalf("ParseProgram: returned nil")
+		}
+		checkParserError(t, p)
+
+		if len(program.Statements) != 1 {
+			t.Fatalf("ParseProgram: expected 1 statements, got %d", len(program.Statements))
+		}
+
+		stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+		if !ok {
+			t.Fatalf("ParseProgram: expected a ExpressionStatement, got %T", program.Statements[0])
+		}
+
+		testBoolean(t, stmt.Expression, tt.exp)
+	}
 }
 
 func TestIntegerExpression(t *testing.T) {
@@ -271,6 +304,26 @@ func testIdentifier(t *testing.T, exp ast.Expression, value string) bool {
 
 	if ident.TokenLiteral() != value {
 		t.Fatalf("testIdentifier: identifier token should be %q, got %q", value, ident.TokenLiteral())
+		return false
+	}
+
+	return true
+}
+
+func testBoolean(t *testing.T, exp ast.Expression, value bool) bool {
+	b, ok := exp.(*ast.Boolean)
+	if !ok {
+		t.Fatalf("testBoolean: expression should be of type Boolean, got %T", exp)
+		return false
+	}
+
+	if b.Value != value {
+		t.Fatalf("testBoolean: value should be %s, got %s", strconv.FormatBool(value), strconv.FormatBool(b.Value))
+		return false
+	}
+
+	if b.TokenLiteral() != strconv.FormatBool(value) {
+		t.Fatalf("testBoolean: token should be %s, got %s", strconv.FormatBool(value), b.TokenLiteral())
 		return false
 	}
 
