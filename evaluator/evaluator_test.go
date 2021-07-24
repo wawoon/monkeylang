@@ -17,6 +17,11 @@ func TestEvalIntegerExpression(t *testing.T) {
 		{input: "10", expected: 10},
 		{input: "-5", expected: -5},
 		{input: "-10", expected: -10},
+		{input: "5 + 5 + 5 + 5 - 10", expected: 10},
+		{input: "2 * 2 * 2 * 2 * 2", expected: 32},
+		{input: "-50 + 100 + -50", expected: 0},
+		{input: "5 * 2 + 10", expected: 20},
+		{input: "5 + 2 * 10", expected: 25},
 	}
 
 	for _, test := range tests {
@@ -32,6 +37,26 @@ func TestEvalBooleanExpression(t *testing.T) {
 	}{
 		{input: "true", expected: true},
 		{input: "false", expected: false},
+		{input: "1 < 2", expected: true},
+		{input: "1 > 2", expected: false},
+		{input: "1 < 1", expected: false},
+		{input: "1 > 1", expected: false},
+		{input: "1 == 1", expected: true},
+		{input: "1 != 1", expected: false},
+		{input: "1 == 2", expected: false},
+		{input: "1 != 2", expected: true},
+		{input: "true == true", expected: true},
+		{input: "true != true", expected: false},
+		{input: "true == false", expected: false},
+		{input: "true != false", expected: true},
+		{input: "false == false", expected: true},
+		{input: "false != false", expected: false},
+		{input: "false == true", expected: false},
+		{input: "false != true", expected: true},
+		{input: "(1 < 2) == true", expected: true},
+		{input: "(1 < 2) == false", expected: false},
+		{input: "(1 > 2) == true", expected: false},
+		{input: "(1 > 2) == false", expected: true},
 	}
 
 	for _, test := range tests {

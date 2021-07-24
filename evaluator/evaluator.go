@@ -20,16 +20,24 @@ func Eval(node ast.Node) object.Object {
 	case *ast.IntegerLiteral:
 		return &object.Integer{Value: node.Value}
 	case *ast.Boolean:
-		if node.Value {
-			return TRUE
-		}
-		return FALSE
+		return naiveBoolToBooleanObject(node.Value)
 	case *ast.PrefixExpression:
 		right := Eval(node.Right)
 		return evalPrefixExpression(node.Operator, right)
+	case *ast.InfixExpression:
+		left := Eval(node.Left)
+		right := Eval(node.Right)
+		return evalInfixExpression(node.Operator, left, right)
 	}
 
 	return nil
+}
+
+func naiveBoolToBooleanObject(naive bool) object.Object {
+	if naive {
+		return TRUE
+	}
+	return FALSE
 }
 
 func evalStatements(stmts []ast.Statement) object.Object {
@@ -70,4 +78,49 @@ func evalMinusPrefixOperatorExpression(right object.Object) object.Object {
 
 	rightValue := right.(*object.Integer).Value
 	return &object.Integer{Value: -rightValue}
+}
+
+func evalInfixExpression(operator string, left object.Object, right object.Object) object.Object {
+	switch {
+	case left.Type() == object.INTEGER_OBJECT && right.Type() == object.INTEGER_OBJECT:
+		return evalIntegerInfixExpression(operator, left, right)
+	case operator == "==":
+		return naiveBoolToBooleanObject(left == right)
+	case operator == "!=":
+		return naiveBoolToBooleanObject(left != right)
+	default:
+		return NULL
+	}
+}
+
+func evalIntegerInfixExpression(operator string, left object.Object, right object.Object) object.Object {
+	leftValue := left.(*object.Integer).Value
+	rightValue := right.(*object.Integer).Value
+
+	switch operator {
+	case "+":
+		return &object.Integer{Value: leftValue + rightValue}
+	case "-":
+		return &object.Integer{Value: leftValue - rightValue}
+	case "*":
+		return &object.Integer{Value: leftValue * rightValue}
+	case "/":
+		return &object.Integer{Value: leftValue / rightValue}
+	case "%":
+		return &object.Integer{Value: leftValue % rightValue}
+	case "==":
+		return naiveBoolToBooleanObject(leftValue == rightValue)
+	case "!=":
+		return naiveBoolToBooleanObject(leftValue != rightValue)
+	case "<":
+		return naiveBoolToBooleanObject(leftValue < rightValue)
+	case ">":
+		return naiveBoolToBooleanObject(leftValue > rightValue)
+	case "<=":
+		return naiveBoolToBooleanObject(leftValue <= rightValue)
+	case ">=":
+		return naiveBoolToBooleanObject(leftValue >= rightValue)
+	}
+
+	return NULL
 }
