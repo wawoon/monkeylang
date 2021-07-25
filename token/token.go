@@ -44,6 +44,8 @@ const (
 	RPAREN    TokenType = "RPAREN"
 	LBRACE    TokenType = "LBRACE"
 	RBRACE    TokenType = "RBRACE"
+	LBRACKET  TokenType = "LBRACKET"
+	RBRACKET  TokenType = "RBRACKET"
 	FUNCTION  TokenType = "FUNCTION"
 	LET       TokenType = "LET"
 	TRUE      TokenType = "TRUE"
