@@ -266,6 +266,18 @@ func TestStringLiteral(t *testing.T) {
 	}
 }
 
+func TestStringConcatenation(t *testing.T) {
+	input := `"hello " + "world";`
+	evaluated := testEval(input)
+	str, ok := evaluated.(*object.String)
+	if !ok {
+		t.Fatalf("evaluated value is not a string: %T, %s", evaluated, evaluated.Inspect())
+	}
+	if str.Value != "hello world" {
+		t.Fatalf("string has wrong value: %s", str.Value)
+	}
+}
+
 func testEval(input string) object.Object {
 	env := object.NewEnvironment()
 	l := lexer.New(input)
