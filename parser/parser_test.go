@@ -612,3 +612,108 @@ func TestParsingIndexExpressions(t *testing.T) {
 		return
 	}
 }
+
+func TestParsingHashLiteralsStringKeys(t *testing.T) {
+	input := `{"one": 1, "two": 2, "three": 3}`
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+
+	checkParserError(t, p)
+	if len(program.Statements) != 1 {
+		t.Fatalf("ParseProgram: expected 1 statements, got %d", len(program.Statements))
+	}
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("ParseProgram: expected a ExpressionStatement, got %T", program.Statements[0])
+	}
+	hash, ok := stmt.Expression.(*ast.HashLiteral)
+	if !ok {
+		t.Fatalf("ParseProgram: expected a HashLiteral, got %T", stmt.Expression)
+	}
+	if len(hash.Pairs) != 3 {
+		t.Fatalf("ParseProgram: expected 3 pairs, got %d", len(hash.Pairs))
+	}
+
+	expected := map[string]int64{
+		"one":   1,
+		"two":   2,
+		"three": 3,
+	}
+
+	for key, value := range hash.Pairs {
+		literal, ok := key.(*ast.StringLiteral)
+		if !ok {
+			t.Fatalf("ParseProgram: expected a StringLiteral, got %T", key)
+		}
+
+		expectedValue := expected[literal.Value]
+		testIntegerLiteral(t, value, expectedValue)
+	}
+}
+
+func TestParsingEmptyHashLiteralsStringKeys(t *testing.T) {
+	input := `{}`
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParserError(t, p)
+	if len(program.Statements) != 1 {
+		t.Fatalf("ParseProgram: expected 1 statements, got %d", len(program.Statements))
+	}
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("ParseProgram: expected a ExpressionStatement, got %T", program.Statements[0])
+	}
+	hash, ok := stmt.Expression.(*ast.HashLiteral)
+	if !ok {
+		t.Fatalf("ParseProgram: expected a HashLiteral, got %T", stmt.Expression)
+	}
+	if len(hash.Pairs) != 0 {
+		t.Fatalf("ParseProgram: expected 0 pairs, got %d", len(hash.Pairs))
+	}
+}
+
+func TestParsingHashLiteralsWithExpressions(t *testing.T) {
+	input := `{"one": 0 + 1, "two": 10 - 8, "three": 15 / 5}`
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParserError(t, p)
+	if len(program.Statements) != 1 {
+		t.Fatalf("ParseProgram: expected 1 statements, got %d", len(program.Statements))
+	}
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("ParseProgram: expected a ExpressionStatement, got %T", program.Statements[0])
+	}
+	hash, ok := stmt.Expression.(*ast.HashLiteral)
+	if !ok {
+		t.Fatalf("ParseProgram: expected a HashLiteral, got %T", stmt.Expression)
+	}
+	if len(hash.Pairs) != 3 {
+		t.Fatalf("ParseProgram: expected 3 pairs, got %d", len(hash.Pairs))
+	}
+
+	tests := map[string]func(e ast.Expression){
+		"one": func(e ast.Expression) {
+			testInfixExpression(t, e, 0, "+", 1)
+		},
+		"two": func(e ast.Expression) {
+			testInfixExpression(t, e, 10, "-", 8)
+		},
+		"three": func(e ast.Expression) {
+			testInfixExpression(t, e, 15, "/", 5)
+		},
+	}
+
+	for key, value := range hash.Pairs {
+		literal, ok := key.(*ast.StringLiteral)
+		if !ok {
+			t.Fatalf("ParseProgram: expected a StringLiteral, got %T", key)
+		}
+
+		test := tests[literal.Value]
+		test(value)
+	}
+}

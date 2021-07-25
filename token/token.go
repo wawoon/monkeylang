@@ -40,6 +40,7 @@ const (
 	OR        TokenType = "OR"
 	COMMA     TokenType = "COMMA"
 	SEMICOLON TokenType = "SEMICOLON"
+	COLON     TokenType = "COLON"
 	LPAREN    TokenType = "LPAREN"
 	RPAREN    TokenType = "RPAREN"
 	LBRACE    TokenType = "LBRACE"
