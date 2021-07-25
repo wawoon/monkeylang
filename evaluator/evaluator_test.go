@@ -254,6 +254,18 @@ func TestClosure(t *testing.T) {
 	testIntegerObject(t, testEval(input), 7)
 }
 
+func TestStringLiteral(t *testing.T) {
+	input := `"hello world";`
+	evaluated := testEval(input)
+	str, ok := evaluated.(*object.String)
+	if !ok {
+		t.Errorf("evaluated value is not a string: %T", evaluated)
+	}
+	if str.Value != "hello world" {
+		t.Errorf("string has wrong value: %s", str.Value)
+	}
+}
+
 func testEval(input string) object.Object {
 	env := object.NewEnvironment()
 	l := lexer.New(input)

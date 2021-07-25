@@ -17,6 +17,7 @@ const (
 	RETURN_OBJECT   ObjectType = "RETURN"
 	ERROR_OBJECT    ObjectType = "ERROR"
 	FUNCTION_OBJECT ObjectType = "FUNCTION"
+	STRING_OBJECT   ObjectType = "STRING"
 )
 
 type Object interface {
@@ -103,3 +104,10 @@ func (f *Function) Inspect() string {
 	out.WriteString("}\n")
 	return out.String()
 }
+
+type String struct {
+	Value string
+}
+
+func (s String) Type() ObjectType { return STRING_OBJECT }
+func (s *String) Inspect() string { return s.Value }
