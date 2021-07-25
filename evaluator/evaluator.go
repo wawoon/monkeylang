@@ -25,6 +25,12 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		return &object.String{Value: node.Value}
 	case *ast.Boolean:
 		return naiveBoolToBooleanObject(node.Value)
+	case *ast.ArrayLiteral:
+		elements := evalExpressions(node.Elements, env)
+		if len(elements) == 1 && isError(elements[0]) {
+			return elements[0]
+		}
+		return &object.Array{Elements: elements}
 	case *ast.PrefixExpression:
 		right := Eval(node.Right, env)
 		if isError(right) {
@@ -71,7 +77,7 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		if isError(fn) {
 			return fn
 		}
-		args := evalArguments(node.Arguments, env)
+		args := evalExpressions(node.Arguments, env)
 		if len(args) == 1 && isError(args[0]) {
 			return args[0]
 		}
@@ -242,16 +248,17 @@ func evalIfExpression(ie *ast.IfExpression, env *object.Environment) object.Obje
 	}
 }
 
-func evalArguments(args []ast.Expression, env *object.Environment) []object.Object {
-	var results []object.Object
-	for _, arg := range args {
-		evaluated := Eval(arg, env)
+func evalExpressions(expressions []ast.Expression, env *object.Environment) []object.Object {
+	var result []object.Object
+	for _, expression := range expressions {
+		evaluated := Eval(expression, env)
 		if isError(evaluated) {
 			return []object.Object{evaluated}
 		}
-		results = append(results, evaluated)
+
+		result = append(result, evaluated)
 	}
-	return results
+	return result
 }
 
 func applyFunction(fn object.Object, args []object.Object) object.Object {
