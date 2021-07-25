@@ -552,3 +552,20 @@ func TestCallExpressionParsing(t *testing.T) {
 		return
 	}
 }
+
+func TestStringLiteralExpression(t *testing.T) {
+	input := `"hello world";`
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParserError(t, p)
+	if len(program.Statements) != 1 {
+		t.Fatalf("ParseProgram: expected 1 statements, got %d", len(program.Statements))
+	}
+
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("ParseProgram: expected a ExpressionStatement, got %T", program.Statements[0])
+	}
+	testStringLiteral(t, stmt.Expression, "hello world")
+}

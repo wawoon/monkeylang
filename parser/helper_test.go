@@ -160,6 +160,21 @@ func testInfixExpression(t *testing.T, exp ast.Expression, left interface{}, ope
 	return true
 }
 
+func testStringLiteral(t *testing.T, exp ast.Expression, value string) bool {
+	str, ok := exp.(*ast.StringLiteral)
+	if !ok {
+		t.Fatalf("testStringLiteral: expression should be of type StringLiteral, got %T", exp)
+		return false
+	}
+
+	if str.Value != value {
+		t.Fatalf("testStringLiteral: string literal value should be %q, got %q", value, str.Value)
+		return false
+	}
+
+	return true
+}
+
 func checkParserError(t *testing.T, p *Parser) {
 	errs := p.Errors()
 	if len(errs) == 0 {
