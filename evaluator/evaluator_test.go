@@ -177,6 +177,10 @@ func TestErrorHandling(t *testing.T) {
 			input:    "foobar",
 			expected: "identifier not found: foobar",
 		},
+		{
+			input:    `{"name": "Monkey"}[fn(x){x}]`,
+			expected: "unusable as hash key: FUNCTION",
+		},
 	}
 
 	for _, test := range tests {
@@ -368,6 +372,36 @@ func TestHashLiterals(t *testing.T) {
 			testIntegerObject(t, value.Value, expectedValue)
 		} else {
 			t.Fatalf("unexpected pair in hash: %v", key)
+		}
+	}
+}
+
+func TestHashIndexExpressions(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected interface{}
+	}{
+		{
+			`{"foo":5}["foo"]`,
+			5,
+		},
+		{
+			`let key = "foo"; {"foo": 5}[key]`,
+			5,
+		},
+		{
+			`{"foo": 5}["bar"]`,
+			nil,
+		},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		switch expected := tt.expected.(type) {
+		case int:
+			testIntegerObject(t, evaluated, int64(expected))
+		default:
+			testNullObject(t, evaluated)
 		}
 	}
 }
