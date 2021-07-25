@@ -336,6 +336,42 @@ func TestArrayIndexExpressions(t *testing.T) {
 	}
 }
 
+func TestHashLiterals(t *testing.T) {
+	input := `let two = "two";
+	{
+		"one": 1,
+		two: 2,
+		"thr" + "ee": 3,
+		4: 4,
+		true: 5,
+		false: 6
+	}
+	`
+	evaluated := testEval(input)
+	result, ok := evaluated.(*object.Hash)
+	if !ok {
+		t.Fatalf("evaluated value is not a hash: %T", evaluated)
+	}
+	expected := map[object.HashKey]int64{
+		(&object.String{Value: "one"}).HashKey():   1,
+		(&object.String{Value: "two"}).HashKey():   2,
+		(&object.String{Value: "three"}).HashKey(): 3,
+		(&object.Integer{Value: 4}).HashKey():      4,
+		(&object.Boolean{Value: true}).HashKey():   5,
+		(&object.Boolean{Value: false}).HashKey():  6,
+	}
+	if len(result.Pairs) != len(expected) {
+		t.Fatalf("wrong number of pairs in hash. got=%d, want=%d", len(result.Pairs), len(expected))
+	}
+	for key, value := range result.Pairs {
+		if expectedValue, ok := expected[key]; ok {
+			testIntegerObject(t, value.Value, expectedValue)
+		} else {
+			t.Fatalf("unexpected pair in hash: %v", key)
+		}
+	}
+}
+
 func testEval(input string) object.Object {
 	env := object.NewEnvironment()
 	l := lexer.New(input)

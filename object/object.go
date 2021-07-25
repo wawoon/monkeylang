@@ -21,6 +21,7 @@ const (
 	STRING_OBJECT   ObjectType = "STRING"
 	BUILTIN_OBJECT  ObjectType = "BUILTIN"
 	ARRAY_OBJECT    ObjectType = "ARRAY"
+	HASH_OBJECT     ObjectType = "HASH"
 )
 
 type Object interface {
@@ -142,6 +143,10 @@ func (a Array) Inspect() string {
 	return out.String()
 }
 
+type Hashable interface {
+	HashKey() HashKey
+}
+
 type HashKey struct {
 	Type  ObjectType
 	Value uint64
@@ -165,4 +170,26 @@ func (s *String) HashKey() HashKey {
 	h := fnv.New64a()
 	h.Write([]byte(s.Value))
 	return HashKey{Type: s.Type(), Value: h.Sum64()}
+}
+
+type HashPair struct {
+	Key   Object
+	Value Object
+}
+
+type Hash struct {
+	Pairs map[HashKey]HashPair
+}
+
+func (h *Hash) Type() ObjectType { return HASH_OBJECT }
+func (h *Hash) Inspect() string {
+	var out bytes.Buffer
+	pairs := []string{}
+	for _, pair := range h.Pairs {
+		pairs = append(pairs, pair.Key.Inspect()+": "+pair.Value.Inspect())
+	}
+	out.WriteString("{")
+	out.WriteString(strings.Join(pairs, ", "))
+	out.WriteString("}")
+	return out.String()
 }
