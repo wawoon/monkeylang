@@ -373,9 +373,7 @@ func TestIfExpression(t *testing.T) {
 		t.Fatalf("ParseProgram: expected an IfExpression, got %T", stmt.Expression)
 	}
 
-	if !testInfixExpression(t, exp.Condition, "x", "<", "y") {
-		return
-	}
+	testInfixExpression(t, exp.Condition, "x", "<", "y")
 
 	if len(exp.Consequence.Statements) != 1 {
 		t.Fatalf("ParseProgram: expected 1 consequence statements, got %d", len(exp.Consequence.Statements))
@@ -386,9 +384,7 @@ func TestIfExpression(t *testing.T) {
 		t.Fatalf("ParseProgram: expected a ExpressionStatement, got %T", exp.Consequence.Statements[0])
 	}
 
-	if !testIdentifier(t, consequence.Expression, "x") {
-		return
-	}
+	testIdentifier(t, consequence.Expression, "x")
 
 	if exp.Alternative != nil {
 		t.Fatalf("ParseProgram: expected no alternative, got %T", exp.Alternative)
@@ -416,9 +412,7 @@ func TestIfElseExpression(t *testing.T) {
 		t.Fatalf("ParseProgram: expected an IfExpression, got %T", stmt.Expression)
 	}
 
-	if !testInfixExpression(t, exp.Condition, "x", "<", "y") {
-		return
-	}
+	testInfixExpression(t, exp.Condition, "x", "<", "y")
 
 	if len(exp.Consequence.Statements) != 1 {
 		t.Fatalf("ParseProgram: expected 1 consequence statements, got %d", len(exp.Consequence.Statements))
@@ -429,9 +423,7 @@ func TestIfElseExpression(t *testing.T) {
 		t.Fatalf("ParseProgram: expected an ExpressionStatement, got %T", exp.Consequence.Statements[0])
 	}
 
-	if !testIdentifier(t, consequence.Expression, "x") {
-		return
-	}
+	testIdentifier(t, consequence.Expression, "x")
 
 	if len(exp.Alternative.Statements) != 1 {
 		t.Fatalf("ParseProgram: expected 1 alternative statements, got %d", len(exp.Alternative.Statements))
@@ -441,9 +433,7 @@ func TestIfElseExpression(t *testing.T) {
 	if !ok {
 		t.Fatalf("ParseProgram: expected an ExpressionStatement, got %T", exp.Alternative.Statements[0])
 	}
-	if !testIdentifier(t, alternative.Expression, "y") {
-		return
-	}
+	testIdentifier(t, alternative.Expression, "y")
 }
 
 func TestFunctionLiteralParsing(t *testing.T) {
@@ -477,9 +467,7 @@ func TestFunctionLiteralParsing(t *testing.T) {
 	if len(fl.Body.Statements) != 1 {
 		t.Fatalf("ParseProgram: expected 1 statements, got %d", len(fl.Body.Statements))
 	}
-	if !testInfixExpression(t, fl.Body.Statements[0].(*ast.ExpressionStatement).Expression, "x", "+", "y") {
-		return
-	}
+	testInfixExpression(t, fl.Body.Statements[0].(*ast.ExpressionStatement).Expression, "x", "+", "y")
 }
 
 func TestFunctionParameterParsing(t *testing.T) {
@@ -514,9 +502,7 @@ func TestFunctionParameterParsing(t *testing.T) {
 			t.Fatalf("ParseProgram: expected %d parameters, got %d", len(tt.expected), len(fl.Parameters))
 		}
 		for i, p := range fl.Parameters {
-			if !testIdentifier(t, p, tt.expected[i]) {
-				return
-			}
+			testIdentifier(t, p, tt.expected[i])
 		}
 	}
 }
@@ -542,15 +528,9 @@ func TestCallExpressionParsing(t *testing.T) {
 		t.Fatalf("ParseProgram: expected 3 arguments, got %d", len(ce.Arguments))
 	}
 
-	if !testIntegerLiteral(t, ce.Arguments[0], 1) {
-		return
-	}
-	if !testInfixExpression(t, ce.Arguments[1], 2, "*", 3) {
-		return
-	}
-	if !testInfixExpression(t, ce.Arguments[2], 4, "+", 5) {
-		return
-	}
+	testIntegerLiteral(t, ce.Arguments[0], 1)
+	testInfixExpression(t, ce.Arguments[1], 2, "*", 3)
+	testInfixExpression(t, ce.Arguments[2], 4, "+", 5)
 }
 
 func TestStringLiteralExpression(t *testing.T) {
@@ -568,4 +548,29 @@ func TestStringLiteralExpression(t *testing.T) {
 		t.Fatalf("ParseProgram: expected a ExpressionStatement, got %T", program.Statements[0])
 	}
 	testStringLiteral(t, stmt.Expression, "hello world")
+}
+
+func TestParsingArrayLiterals(t *testing.T) {
+	input := "[1 , 2 * 2, 3 + 3]"
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParserError(t, p)
+	if len(program.Statements) != 1 {
+		t.Fatalf("ParseProgram: expected 1 statements, got %d", len(program.Statements))
+	}
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("ParseProgram: expected a ExpressionStatement, got %T", program.Statements[0])
+	}
+	ar, ok := stmt.Expression.(*ast.ArrayLiteral)
+	if !ok {
+		t.Fatalf("ParseProgram: expected a ArrayLiteral, got %T", stmt.Expression)
+	}
+	if len(ar.Elements) != 3 {
+		t.Fatalf("ParseProgram: expected 3 elements, got %d", len(ar.Elements))
+	}
+	testIntegerLiteral(t, ar.Elements[0], 1)
+	testInfixExpression(t, ar.Elements[1], 2, "*", 2)
+	testInfixExpression(t, ar.Elements[2], 3, "+", 3)
 }
