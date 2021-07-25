@@ -22,6 +22,7 @@ const (
 	EOF       TokenType = "EOF"
 	IDENT     TokenType = "IDENT"
 	INT       TokenType = "INT"
+	STRING    TokenType = "STRING"
 	ASSIGN    TokenType = "ASSIGN"
 	PLUS      TokenType = "PLUS"
 	MINUS     TokenType = "MINUS"
